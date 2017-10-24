@@ -1,6 +1,6 @@
 # NuimoFoo
 
-Universal Windows app for Nuimo which triggers Key Events.
+Universal Windows app for Nuimo which triggers key events.
 
 ## installation
  TODO :)
