@@ -25,11 +25,11 @@ namespace NuimoFoo
 
         public Profile()
         {
-            SwipeUp = "^j";
-            SwipeDown = "^+j";
-            RotateRight = "{DOWN}";
-            RotateLeft = "{UP}";
-            ButtonPress = "{F11}{ENTER}";
+            SwipeUp = "nuimokeytrigger:^j";
+            SwipeDown = "nuimokeytrigger:^+j";
+            RotateRight = "nuimokeytrigger:{DOWN}";
+            RotateLeft = "nuimokeytrigger:{UP}";
+            ButtonPress = "nuimokeytrigger:{F11}{ENTER}";
         }
 
     }

@@ -191,16 +191,16 @@ namespace NuimoFoo
                 ((WithoutWriteResponseCheckBox.IsChecked ?? false) ? (int)NuimoLedMatrixWriteOption.WithoutWriteResponse : 0);
         }
 
-        private async void triggerKey(String key)
+        private async void triggerApp(String appUri)
         {
             //Process.Start("C:\\");
             // The URI to launch
-            if (!(key == null || key == String.Empty))
+            if (!(appUri == null || appUri == String.Empty))
             {
-                var uriBing = new Uri(@"nuimokeytrigger:" + key);
+                var uriBing = new Uri(@"" + appUri);
 
                 OutputTextBox.Text = new StringBuilder(OutputTextBox.Text)
-               .Append("trigger keys" + key + "\n")
+               .Append("trigger App with uri" + appUri + "\n")
                .ToString();
 
                 // Launch the URI
@@ -238,54 +238,54 @@ namespace NuimoFoo
 
             if (nuimoGestureEvent.Gesture == NuimoGesture.ButtonPress)
             {
-                triggerKey(_profile.ButtonPress);
+                triggerApp(_profile.ButtonPress);
             }
             if (nuimoGestureEvent.Gesture == NuimoGesture.ButtonRelease)
             {
-                triggerKey(_profile.ButtonRelease);
+                triggerApp(_profile.ButtonRelease);
             }
             if (nuimoGestureEvent.Gesture == NuimoGesture.SwipeUp)
             {
-                triggerKey(_profile.SwipeUp);
+                triggerApp(_profile.SwipeUp);
             }
             if (nuimoGestureEvent.Gesture == NuimoGesture.SwipeDown)
             {
-                triggerKey(_profile.SwipeDown);
+                triggerApp(_profile.SwipeDown);
             }
             if (nuimoGestureEvent.Gesture == NuimoGesture.SwipeLeft)
             {
-                triggerKey(_profile.SwipeLeft);
+                triggerApp(_profile.SwipeLeft);
             }
             if (nuimoGestureEvent.Gesture == NuimoGesture.SwipeRight)
             {
-                triggerKey(_profile.SwipeRight);
+                triggerApp(_profile.SwipeRight);
             }
 
             if (nuimoGestureEvent.Gesture == NuimoGesture.Rotate && nuimoGestureEvent.Value > 10)
             {
-                triggerKey(_profile.RotateRight);
+                triggerApp(_profile.RotateRight);
             }
             if (nuimoGestureEvent.Gesture == NuimoGesture.Rotate && nuimoGestureEvent.Value < -10)
             {
-                triggerKey(_profile.RotateLeft);
+                triggerApp(_profile.RotateLeft);
             }
 
             if (nuimoGestureEvent.Gesture == NuimoGesture.FlyUpDown && nuimoGestureEvent.Value > 125)
             {
-                triggerKey(_profile.FlyUp);
+                triggerApp(_profile.FlyUp);
             }
             if (nuimoGestureEvent.Gesture == NuimoGesture.FlyUpDown && nuimoGestureEvent.Value <= 125)
             {
-                triggerKey(_profile.FlyDown);
+                triggerApp(_profile.FlyDown);
             }
 
             if (nuimoGestureEvent.Gesture == NuimoGesture.FlyLeft)
             {
-                triggerKey(_profile.FlyLeft);
+                triggerApp(_profile.FlyLeft);
             }
             if (nuimoGestureEvent.Gesture == NuimoGesture.FlyRight)
             {
-                triggerKey(_profile.FlyRight);
+                triggerApp(_profile.FlyRight);
             }
 
             OutputTextBox.ScrollToBottom();
