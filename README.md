@@ -23,12 +23,11 @@ These settings are defined in profiles. Each profile is a JSON file which looks 
 }
 ```
 
+You can change between profiles on the run.
+
 I've created two example apps
 - [nuimokeytrigger, to trigger key types](https://github.com/mrothenbuecher/NuimoKeytrigger)
 - [nuimodde,to make dde calls](https://github.com/mrothenbuecher/nuimodde)
 
 ## requirements
- TODO :)
-
-## installation
- TODO :)
+ Windows 10
