@@ -386,7 +386,8 @@ namespace NuimoFoo
 
         private async void Open_Profile_DirAsync(object sender, RoutedEventArgs e)
         {
-            await Launcher.LaunchFolderAsync(localFolder);
+            var profileFolders = await localFolder.CreateFolderAsync("Profiles", CreationCollisionOption.OpenIfExists);
+            await Launcher.LaunchFolderAsync(profileFolders);
         }
     }
 }
