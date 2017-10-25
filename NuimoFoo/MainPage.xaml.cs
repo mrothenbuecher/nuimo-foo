@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NuimoSDK;
 using System;
 using System.Collections.Generic;
@@ -6,6 +7,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Windows.Storage;
+using Windows.Storage.Search;
 using Windows.System;
 using Windows.UI;
 using Windows.UI.Popups;
@@ -26,8 +29,9 @@ namespace NuimoFoo
         private readonly PairedNuimoManager _pairedNuimoManager = new PairedNuimoManager();
         private IEnumerable<INuimoController> _nuimoControllers = new List<INuimoController>();
         private INuimoController _nuimoController;
+        private Windows.Storage.StorageFolder localFolder = Windows.Storage.ApplicationData.Current.LocalFolder;
 
-        private Profile _profile = new Profile();
+        private Profile _profile;
 
         public MainPage()
         {
@@ -44,37 +48,46 @@ namespace NuimoFoo
 
         private async void initProfiles()
         {
-            Windows.Storage.StorageFolder localFolder = Windows.Storage.ApplicationData.Current.LocalFolder;
 
 
-            JObject o = (JObject)JToken.FromObject(_profile);
+            var profileFolders = await localFolder.CreateFolderAsync("Profiles", CreationCollisionOption.OpenIfExists);
 
-            JSONTextBox.Text = new StringBuilder(JSONTextBox.Text)
-                        .Append(o.ToString() + "\n")
-                        .ToString();
-
-            JSONTextBox.Text = new StringBuilder(JSONTextBox.Text)
-                        .Append(localFolder.Path + "\n")
-                        .ToString();
-
-            DirectoryInfo d = new DirectoryInfo(@""+localFolder.Path);//Assuming Test is your Folder
-            FileInfo[] Files = d.GetFiles("*.json"); //Getting Text files
-            if (Files.Length >0)
+            var Files = await profileFolders.GetFilesAsync(CommonFileQuery.OrderByName); //Getting Text files
+            if (Files.Count == 0)
             {
-                // there are profiles
-                string str = "";
-                foreach (FileInfo file in Files)
-                {
-                    str = str + ", " + file.Name;
-                }
-                JSONTextBox.Text = new StringBuilder(JSONTextBox.Text)
-                        .Append("Profiles:"+str+ "\n")
+                // there are noe profile files
+                // create one
+                _profile = new Profile();
+                string json = JsonConvert.SerializeObject(_profile, Formatting.Indented);
+
+                ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
+                        .Append(json + "\n")
                         .ToString();
-            }
-            else
-            {
+                var textFile = await profileFolders.CreateFileAsync("default.json");
+                await FileIO.WriteTextAsync(textFile, json);
+
+                Files = await profileFolders.GetFilesAsync(CommonFileQuery.OrderByName);
 
             }
+            ProfilesComboBox.Items?.Clear();
+            // there are profiles
+            string str = "";
+            foreach (StorageFile file in Files)
+            {
+                str = str + ", " + file.Name;
+                ProfilesComboBox.Items?.Add(file.Name);
+            }
+
+            ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
+        .Append("Profiles found:" + str + "\n")
+        .ToString();
+
+            //TODO may be save
+            if (ProfilesComboBox.Items?.Count > 0) ProfilesComboBox.SelectedIndex = 0;
+
+            // load selected profile as default
+            // TODO
+            Select_ProfileAsync(null, null);
 
         }
 
@@ -88,6 +101,14 @@ namespace NuimoFoo
             }
             ReloadButton.Content = "Reload";
             if (PairedNuimosComboBox.Items?.Count > 0) PairedNuimosComboBox.SelectedIndex = 0;
+            if (PairedNuimosComboBox.Items?.Count == 1)
+            {
+                // automatic connect to nuimo
+                ConnectButton_OnClick(null, null);
+                OutputTextBox.Text = new StringBuilder(OutputTextBox.Text)
+                .Append("autoconnect" + "\n")
+                .ToString();
+            }
         }
 
         private void AddLedCheckBoxes()
@@ -200,7 +221,7 @@ namespace NuimoFoo
             {
                 var uriBing = new Uri(@"" + appUri);
 
-                OutputTextBox.Text = new StringBuilder(OutputTextBox.Text)
+                ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
                .Append("trigger App with uri" + appUri + "\n")
                .ToString();
 
@@ -210,21 +231,21 @@ namespace NuimoFoo
                 if (success)
                 {
                     // URI launched
-                    OutputTextBox.Text = new StringBuilder(OutputTextBox.Text)
+                    ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
                         .Append("Success" + "\n")
                         .ToString();
                 }
                 else
                 {
                     // URI launch failed
-                    OutputTextBox.Text = new StringBuilder(OutputTextBox.Text)
+                    ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
                         .Append("nope" + "\n")
                         .ToString();
                 }
             }
             else
             {
-
+                // no command found
             }
         }
 
@@ -289,6 +310,7 @@ namespace NuimoFoo
                 triggerApp(_profile.FlyRight);
             }
 
+            ProfileTextBox.ScrollToBottom();
             OutputTextBox.ScrollToBottom();
         }
 
@@ -330,14 +352,41 @@ namespace NuimoFoo
 
         }
 
-        private void Select_Profile(object sender, RoutedEventArgs e)
+        private async void Select_ProfileAsync(object sender, RoutedEventArgs e)
         {
+            var profileFolders = await localFolder.CreateFolderAsync("Profiles", CreationCollisionOption.OpenIfExists);
 
+            if (ProfilesComboBox.SelectedValue != null && !String.IsNullOrEmpty(ProfilesComboBox.SelectedValue.ToString()))
+            {
+                try
+                {
+
+                    var textFile = await profileFolders.GetFileAsync(ProfilesComboBox.SelectedValue.ToString());
+
+                    String json = await FileIO.ReadTextAsync(textFile);
+
+                    ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
+                        .Append("read json:" + json + "\n")
+                        .ToString();
+
+                    _profile = JsonConvert.DeserializeObject<Profile>(json);
+
+                    ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
+                       .Append("loaded profile:" + ProfilesComboBox.SelectedValue.ToString() + "\n")
+                       .ToString();
+                }
+                catch (Exception ex)
+                {
+                    ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
+                       .Append("Exception:" + ex.Message + "\n")
+                       .ToString();
+                }
+            }
         }
 
         private async void Open_Profile_DirAsync(object sender, RoutedEventArgs e)
         {
-            await Launcher.LaunchFolderAsync(Windows.Storage.ApplicationData.Current.LocalFolder);
+            await Launcher.LaunchFolderAsync(localFolder);
         }
     }
 }
