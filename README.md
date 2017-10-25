@@ -32,7 +32,7 @@ I've created two example apps
 ### attention
 Rotate events are only triggerd if the absolute value of the event is bigger 20.
 
-If the FlyEvent value is bigger 125 it will cause the FlyUp trigger, if it's less or equal 125 it will trigger FlyDown. 
+If the FlyEvent value is bigger or equal 135 it will cause the FlyUp trigger, if it's less or equal 115 and bigger 1 it will trigger FlyDown. 
 
 ## requirements
  Windows 10
