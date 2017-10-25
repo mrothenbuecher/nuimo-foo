@@ -292,11 +292,11 @@ namespace NuimoFoo
                 triggerApp(_profile.RotateLeft);
             }
 
-            if (nuimoGestureEvent.Gesture == NuimoGesture.FlyUpDown && nuimoGestureEvent.Value > 125)
+            if (nuimoGestureEvent.Gesture == NuimoGesture.FlyUpDown && nuimoGestureEvent.Value >= 135)
             {
                 triggerApp(_profile.FlyUp);
             }
-            if (nuimoGestureEvent.Gesture == NuimoGesture.FlyUpDown && nuimoGestureEvent.Value <= 125)
+            if (nuimoGestureEvent.Gesture == NuimoGesture.FlyUpDown && nuimoGestureEvent.Value <= 115 && nuimoGestureEvent.Value > 1)
             {
                 triggerApp(_profile.FlyDown);
             }
