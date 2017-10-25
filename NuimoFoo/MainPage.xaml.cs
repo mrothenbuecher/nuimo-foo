@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Windows.System;
 using Windows.UI;
 using Windows.UI.Popups;
 using Windows.UI.ViewManagement;
@@ -332,6 +333,11 @@ namespace NuimoFoo
         private void Select_Profile(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        private async void Open_Profile_DirAsync(object sender, RoutedEventArgs e)
+        {
+            await Launcher.LaunchFolderAsync(Windows.Storage.ApplicationData.Current.LocalFolder);
         }
     }
 }

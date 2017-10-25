@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" Width="575" Height="640">
+    mc:Ignorable="d" Width="575" Height="690">
 
     <Pivot Title="NuimoFoo" Margin="0,0,10,0">
         <PivotItem Header="Nuimo">
@@ -51,7 +51,7 @@
             </Grid>
         </PivotItem>
         <PivotItem Header="Profiles" Margin="12,0,0,0">
-            <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Margin="0,10,0,0">
+            <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Margin="0,10,0,-60">
                 <TextBox x:Name="JSONTextBox" HorizontalAlignment="Left" Height="365" VerticalAlignment="Top" Width="430" RenderTransformOrigin="1.774,9.9" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True" Margin="88,120,0,0" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
                 <ComboBox x:Name ="ProfilesComboBox"  Margin="88,40,210,0" Height="35" Width="255" SelectionChanged="PairedNuimosComboBox_OnSelectionChanged" HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5"/>
                 <TextBlock HorizontalAlignment="Left" Margin="88,97,0,0" TextWrapping="Wrap" Text="Profile Debug" VerticalAlignment="Top" Height="20" Width="212" SelectionChanged="TextBlock_SelectionChanged"/>
@@ -61,6 +61,7 @@
                     <Run/>
                 </TextBlock>
                 <Button Content="Select Profile" HorizontalAlignment="Left" Margin="383,40,0,0" VerticalAlignment="Top" Height="35" Width="135" Click="Select_Profile"/>
+                <Button Content="Open Profile Dir" HorizontalAlignment="Left" Height="30" Margin="88,490,0,0" VerticalAlignment="Top" Width="430" Click="Open_Profile_DirAsync"/>
             </Grid>
         </PivotItem>
     </Pivot>
