@@ -30,6 +30,7 @@ namespace NuimoFoo
             RotateRight = "nuimokeytrigger:{DOWN}";
             RotateLeft = "nuimokeytrigger:{UP}";
             ButtonPress = "nuimokeytrigger:{F11}{ENTER}";
+            SwipeLeft = "nuimodde:?server=abas-EKS&topic=COMMAND&request=dis";
         }
 
     }
