@@ -29,5 +29,10 @@ I've created two example apps
 - [nuimokeytrigger, to trigger key types](https://github.com/mrothenbuecher/NuimoKeytrigger)
 - [nuimodde,to make dde calls](https://github.com/mrothenbuecher/nuimodde)
 
+### attention
+Rotate events are only triggerd if the absolute value of the event is bigger 20.
+
+If the FlyEvent value is bigger 125 it will cause the FlyUp trigger, if it's less or equal 125 it will trigger FlyDown. 
+
 ## requirements
  Windows 10
