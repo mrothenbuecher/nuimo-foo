@@ -1,6 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using NuimoSDK;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Windows.UI;
@@ -9,10 +12,6 @@ using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
-using NuimoSDK;
-using System.Diagnostics;
-using Newtonsoft.Json.Linq;
-using System.IO;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -36,9 +35,6 @@ namespace NuimoFoo
             AddLedCheckBoxes();
             OutputTextBox.TextWrapping = TextWrapping.NoWrap;
             DisplayIntervalTextBox.Text = "5.0";
-
-            //string json = JsonConvert.SerializeObject(_profile);
-            //await Windows.Storage.FileIO.WriteTextAsync(sampleFile, "Swift as a shadow");
 
             initProfiles();
             Windows.UI.Xaml.Application.Current.DebugSettings.EnableFrameRateCounter = false;
@@ -297,7 +293,7 @@ namespace NuimoFoo
 
         private void OnFirmwareVersion(string firmwareVersion)
         {
-            OutputTextBox.Text = "-------------------------------\nFirmware version: " + firmwareVersion + "\n-------------------------------\n";
+            OutputTextBox.Text = "Firmware version: " + firmwareVersion + "\n";
         }
 
         private void OnConnectionState(NuimoConnectionState nuimoConnectionState)

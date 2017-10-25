@@ -28,4 +28,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("1.0.0.0")]
 [assembly: ComVisible(false)]
 [assembly: NeutralResourcesLanguage("de-DE")]
+[assembly: AssemblyTitleAttribute("NuimoFoo")]
+[assembly: AssemblyDescriptionAttribute("UWP for Nuimo")]
+[assembly: AssemblyCopyrightAttribute("Copyright 2017")]
+[assembly: AssemblyVersionAttribute("1.0.0.0")]
+[assembly: AssemblyFileVersionAttribute("1.0.0.0")]
 
