@@ -11,6 +11,7 @@ using Windows.Storage;
 using Windows.Storage.Search;
 using Windows.System;
 using Windows.UI;
+using Windows.UI.Notifications;
 using Windows.UI.Popups;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
@@ -31,25 +32,27 @@ namespace NuimoFoo
         private INuimoController _nuimoController;
         private Windows.Storage.StorageFolder localFolder = Windows.Storage.ApplicationData.Current.LocalFolder;
 
+        private ToastNotifier ToastNotifier = ToastNotificationManager.CreateToastNotifier();
+        private ToastNotification lastToast = null;
         private Profile _profile;
 
         public MainPage()
         {
             InitializeComponent();
+
             ListPairedNuimos();
             AddLedCheckBoxes();
             OutputTextBox.TextWrapping = TextWrapping.NoWrap;
+            ProfileTextBox.TextWrapping = TextWrapping.NoWrap;
             DisplayIntervalTextBox.Text = "5.0";
 
             initProfiles();
             Windows.UI.Xaml.Application.Current.DebugSettings.EnableFrameRateCounter = false;
-            ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
+            ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.Auto;
         }
 
         private async void initProfiles()
         {
-
-
             var profileFolders = await localFolder.CreateFolderAsync("Profiles", CreationCollisionOption.OpenIfExists);
 
             var Files = await profileFolders.GetFilesAsync(CommonFileQuery.OrderByName); //Getting Text files
@@ -85,8 +88,6 @@ namespace NuimoFoo
             //TODO may be save
             if (ProfilesComboBox.Items?.Count > 0) ProfilesComboBox.SelectedIndex = 0;
 
-            // load selected profile as default
-            // TODO
             Select_ProfileAsync(null, null);
 
         }
@@ -105,6 +106,7 @@ namespace NuimoFoo
             {
                 // automatic connect to nuimo
                 ConnectButton_OnClick(null, null);
+
                 OutputTextBox.Text = new StringBuilder(OutputTextBox.Text)
                 .Append("autoconnect" + "\n")
                 .ToString();
@@ -217,36 +219,61 @@ namespace NuimoFoo
         {
             //Process.Start("C:\\");
             // The URI to launch
-            if (!(appUri == null || appUri == String.Empty))
+            if (!String.IsNullOrEmpty(appUri))
             {
-                var uriBing = new Uri(@"" + appUri);
-
-                ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
-               .Append("trigger App with uri" + appUri + "\n")
-               .ToString();
-
-                // Launch the URI
-                var success = await Windows.System.Launcher.LaunchUriAsync(uriBing);
-
-                if (success)
+                // change profile with nuimo
+                if (appUri.ToLower().Equals("profile.next") || appUri.ToLower().Equals("profile.prev"))
                 {
-                    // URI launched
-                    ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
-                        .Append("Success" + "\n")
-                        .ToString();
+                    int i = 0;
+                    if (appUri.ToLower().Equals("profile.next"))
+                    {
+                        // next profile in list
+                        i = (ProfilesComboBox.SelectedIndex + 1) % ProfilesComboBox.Items.Count;
+                    }
+                    else
+                    {
+                        // previous profile in list
+                        i = ProfilesComboBox.SelectedIndex - 1;
+                        if (i < 0)
+                        {
+                            i = ProfilesComboBox.Items.Count - 1;
+                        }
+                    }
+                    ProfilesComboBox.SelectedIndex = i;
+                    Select_ProfileAsync(null,null);
                 }
                 else
                 {
-                    // URI launch failed
+                    var uriBing = new Uri(appUri);
+
                     ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
-                        .Append("nope" + "\n")
-                        .ToString();
+                   .Append("trigger App with uri" + appUri + "\n")
+                   .ToString();
+
+                    // Launch the URI
+                    var success = await Windows.System.Launcher.LaunchUriAsync(uriBing);
+
+                    if (success)
+                    {
+                        // URI launched
+                        ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
+                            .Append("Success" + "\n")
+                            .ToString();
+                    }
+                    else
+                    {
+                        // URI launch failed
+                        ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
+                            .Append("nope" + "\n")
+                            .ToString();
+                    }
                 }
             }
             else
             {
                 // no command found
             }
+            
         }
 
         private void OnNuimoGestureEventAsync(NuimoGestureEvent nuimoGestureEvent)
@@ -258,60 +285,73 @@ namespace NuimoFoo
                 .Append(nuimoGestureEvent.Value + "\n")
                 .ToString();
 
-            if (nuimoGestureEvent.Gesture == NuimoGesture.ButtonPress)
+            try
             {
-                triggerApp(_profile.ButtonPress);
-            }
-            if (nuimoGestureEvent.Gesture == NuimoGesture.ButtonRelease)
-            {
-                triggerApp(_profile.ButtonRelease);
-            }
-            if (nuimoGestureEvent.Gesture == NuimoGesture.SwipeUp)
-            {
-                triggerApp(_profile.SwipeUp);
-            }
-            if (nuimoGestureEvent.Gesture == NuimoGesture.SwipeDown)
-            {
-                triggerApp(_profile.SwipeDown);
-            }
-            if (nuimoGestureEvent.Gesture == NuimoGesture.SwipeLeft)
-            {
-                triggerApp(_profile.SwipeLeft);
-            }
-            if (nuimoGestureEvent.Gesture == NuimoGesture.SwipeRight)
-            {
-                triggerApp(_profile.SwipeRight);
-            }
 
-            if (nuimoGestureEvent.Gesture == NuimoGesture.Rotate && nuimoGestureEvent.Value > 10)
-            {
-                triggerApp(_profile.RotateRight);
-            }
-            if (nuimoGestureEvent.Gesture == NuimoGesture.Rotate && nuimoGestureEvent.Value < -10)
-            {
-                triggerApp(_profile.RotateLeft);
-            }
+                if (nuimoGestureEvent.Gesture == NuimoGesture.ButtonPress)
+                {
+                    triggerApp(_profile.ButtonPress);
+                }
+                if (nuimoGestureEvent.Gesture == NuimoGesture.ButtonRelease)
+                {
+                    triggerApp(_profile.ButtonRelease);
+                }
+                if (nuimoGestureEvent.Gesture == NuimoGesture.SwipeUp)
+                {
+                    triggerApp(_profile.SwipeUp);
+                }
+                if (nuimoGestureEvent.Gesture == NuimoGesture.SwipeDown)
+                {
+                    triggerApp(_profile.SwipeDown);
+                }
+                if (nuimoGestureEvent.Gesture == NuimoGesture.SwipeLeft)
+                {
+                    triggerApp(_profile.SwipeLeft);
+                }
+                if (nuimoGestureEvent.Gesture == NuimoGesture.SwipeRight)
+                {
+                    triggerApp(_profile.SwipeRight);
+                }
 
-            if (nuimoGestureEvent.Gesture == NuimoGesture.FlyUpDown && nuimoGestureEvent.Value >= 135)
-            {
-                triggerApp(_profile.FlyUp);
-            }
-            if (nuimoGestureEvent.Gesture == NuimoGesture.FlyUpDown && nuimoGestureEvent.Value <= 115 && nuimoGestureEvent.Value > 1)
-            {
-                triggerApp(_profile.FlyDown);
-            }
+                if (nuimoGestureEvent.Gesture == NuimoGesture.Rotate && nuimoGestureEvent.Value > 10)
+                {
+                    triggerApp(_profile.RotateRight);
+                }
+                if (nuimoGestureEvent.Gesture == NuimoGesture.Rotate && nuimoGestureEvent.Value < -10)
+                {
+                    triggerApp(_profile.RotateLeft);
+                }
 
-            if (nuimoGestureEvent.Gesture == NuimoGesture.FlyLeft)
-            {
-                triggerApp(_profile.FlyLeft);
-            }
-            if (nuimoGestureEvent.Gesture == NuimoGesture.FlyRight)
-            {
-                triggerApp(_profile.FlyRight);
-            }
+                if (nuimoGestureEvent.Gesture == NuimoGesture.FlyUpDown && nuimoGestureEvent.Value >= 135)
+                {
+                    triggerApp(_profile.FlyUp);
+                }
+                if (nuimoGestureEvent.Gesture == NuimoGesture.FlyUpDown && nuimoGestureEvent.Value <= 115 && nuimoGestureEvent.Value > 1)
+                {
+                    triggerApp(_profile.FlyDown);
+                }
 
-            ProfileTextBox.ScrollToBottom();
-            OutputTextBox.ScrollToBottom();
+                if (nuimoGestureEvent.Gesture == NuimoGesture.FlyLeft)
+                {
+                    triggerApp(_profile.FlyLeft);
+                }
+                if (nuimoGestureEvent.Gesture == NuimoGesture.FlyRight)
+                {
+                    triggerApp(_profile.FlyRight);
+                }
+
+                ProfileTextBox.ScrollToBottom();
+                OutputTextBox.ScrollToBottom();
+            }catch(Exception ex)
+            {
+                OutputTextBox.Text = new StringBuilder(OutputTextBox.Text)
+                .Append("Exception : ")
+                .Append(ex.Message)
+                .Append("\n")
+                .Append(ex.StackTrace)
+                .Append("\n")
+                .ToString();
+            }
         }
 
         private void OnFirmwareVersion(string firmwareVersion)
@@ -330,6 +370,9 @@ namespace NuimoFoo
                 case NuimoConnectionState.Disconnecting: buttonTitle = "Disconnecting..."; break;
                 default: buttonTitle = ""; break;
             }
+
+            ShowToastNotification("Connection State changed", nuimoConnectionState.ToString());
+
             ConnectButton.Content = buttonTitle;
             ConnectionStateTextBlock.Text = nuimoConnectionState.ToString();
         }
@@ -371,6 +414,8 @@ namespace NuimoFoo
 
                     _profile = JsonConvert.DeserializeObject<Profile>(json);
 
+                    ShowToastNotification("changed profile", ProfilesComboBox.SelectedValue.ToString());
+
                     ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
                        .Append("loaded profile:" + ProfilesComboBox.SelectedValue.ToString() + "\n")
                        .ToString();
@@ -382,6 +427,26 @@ namespace NuimoFoo
                        .ToString();
                 }
             }
+        }
+
+        private void ShowToastNotification(string title, string stringContent)
+        {
+            if (lastToast != null)
+            {
+                ToastNotifier.Hide(lastToast);
+            }
+            Windows.Data.Xml.Dom.XmlDocument toastXml = ToastNotificationManager.GetTemplateContent(ToastTemplateType.ToastText02);
+            Windows.Data.Xml.Dom.XmlNodeList toastNodeList = toastXml.GetElementsByTagName("text");
+            toastNodeList.Item(0).AppendChild(toastXml.CreateTextNode(title));
+            toastNodeList.Item(1).AppendChild(toastXml.CreateTextNode(stringContent));
+            Windows.Data.Xml.Dom.IXmlNode toastNode = toastXml.SelectSingleNode("/toast");
+            //Windows.Data.Xml.Dom.XmlElement audio = toastXml.CreateElement("audio");
+            //audio.SetAttribute("src", "ms-winsoundevent:Notification.SMS");
+
+            ToastNotification toast = new ToastNotification(toastXml);
+            toast.ExpirationTime = DateTime.Now.AddSeconds(5);
+            ToastNotifier.Show(toast);
+            lastToast = toast;
         }
 
         private async void Open_Profile_DirAsync(object sender, RoutedEventArgs e)
@@ -396,14 +461,15 @@ internal static class DependencyObjectExtension
 {
     public static void ScrollToBottom(this DependencyObject dependencyObject)
     {
-        var grid = (Grid)VisualTreeHelper.GetChild(dependencyObject, 0);
-        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(grid); i++)
-        {
-            object obj = VisualTreeHelper.GetChild(grid, i);
-            if (!(obj is ScrollViewer)) continue;
-            //((ScrollViewer)obj).ChangeView
-            ((ScrollViewer)obj).ScrollToVerticalOffset(((ScrollViewer)obj).ExtentHeight);
-            break;
+        if (dependencyObject != null) {
+            var grid = (Grid)VisualTreeHelper.GetChild(dependencyObject, 0);
+            for (var i = 0; i < VisualTreeHelper.GetChildrenCount(grid); i++)
+            {
+                object obj = VisualTreeHelper.GetChild(grid, i);
+                if (!(obj is ScrollViewer)) continue;
+                ((ScrollViewer)obj).ChangeView(0.0f, ((ScrollViewer)obj).ExtentHeight, 1.0f, true);
+                break;
+            }
         }
     }
 }

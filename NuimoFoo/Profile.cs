@@ -29,8 +29,9 @@ namespace NuimoFoo
             SwipeDown = "nuimokeytrigger:^+j";
             RotateRight = "nuimokeytrigger:{DOWN}";
             RotateLeft = "nuimokeytrigger:{UP}";
-            ButtonPress = "nuimokeytrigger:{F11}{ENTER}";
+            ButtonRelease = "nuimokeytrigger:{F11}{ENTER}";
             SwipeLeft = "nuimodde:?server=abas-EKS&topic=COMMAND&request=dis";
+            SwipeRight = "profile.next";
         }
 
     }
