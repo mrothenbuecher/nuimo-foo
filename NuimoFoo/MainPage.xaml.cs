@@ -251,7 +251,7 @@ namespace NuimoFoo
                    .ToString();
 
                     // Launch the URI
-                    var success = await Windows.System.Launcher.LaunchUriAsync(uriBing);
+                    var success = await Launcher.LaunchUriAsync(uriBing);
 
                     if (success)
                     {
