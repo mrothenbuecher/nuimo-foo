@@ -39,9 +39,11 @@ namespace NuimoFoo
 
         private ProcessRequester processRequester;
         private Profile _profile;
+        private Settings settings;
 
         public MainPage()
         {
+            settings = new Settings();
             InitializeComponent();
 
             processRequester = new ProcessRequester();
@@ -55,6 +57,7 @@ namespace NuimoFoo
             initProfiles();
             Windows.UI.Xaml.Application.Current.DebugSettings.EnableFrameRateCounter = false;
             ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.Auto;
+
         }
 
         private async void initProfiles()
@@ -88,13 +91,13 @@ namespace NuimoFoo
             }
 
             ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
-        .Append("Profiles found:" + str + "\n")
-        .ToString();
+            .Append("Profiles found:" + str + "\n")
+            .ToString();
 
             //TODO may be save
             if (ProfilesComboBox.Items?.Count > 0) ProfilesComboBox.SelectedIndex = 0;
 
-            Select_ProfileAsync(null, null);
+            switchProfile(true);
 
         }
 
@@ -208,10 +211,16 @@ namespace NuimoFoo
 
         private string GetLedMatrixString()
         {
-            return LedGrid.Children
+            string foo = LedGrid.Children
                 .Select(element => element as Windows.UI.Xaml.Controls.CheckBox)
                 .Select(checkBox => (checkBox.IsChecked ?? false) ? "*" : " ")
                 .Aggregate((matrix, led) => matrix + led);
+
+            ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
+                            .Append(foo + "\n")
+                            .ToString();
+
+            return foo;
         }
 
         private int GetLedMatrixOptions()
@@ -246,7 +255,7 @@ namespace NuimoFoo
                         }
                     }
                     ProfilesComboBox.SelectedIndex = i;
-                    Select_ProfileAsync(null,null);
+                    switchProfile(false);
                 }
                 else
                 {
@@ -286,7 +295,7 @@ namespace NuimoFoo
             {
                 // no command found
             }
-            
+
         }
 
         private void OnNuimoGestureEventAsync(NuimoGestureEvent nuimoGestureEvent)
@@ -326,11 +335,11 @@ namespace NuimoFoo
                     triggerApp(_profile.SwipeRight);
                 }
 
-                if (nuimoGestureEvent.Gesture == NuimoGesture.Rotate && nuimoGestureEvent.Value > 10)
+                if (nuimoGestureEvent.Gesture == NuimoGesture.Rotate && nuimoGestureEvent.Value > settings.rotateThreshold)
                 {
                     triggerApp(_profile.RotateRight);
                 }
-                if (nuimoGestureEvent.Gesture == NuimoGesture.Rotate && nuimoGestureEvent.Value < -10)
+                if (nuimoGestureEvent.Gesture == NuimoGesture.Rotate && nuimoGestureEvent.Value < (-1* settings.rotateThreshold))
                 {
                     triggerApp(_profile.RotateLeft);
                 }
@@ -353,9 +362,12 @@ namespace NuimoFoo
                     triggerApp(_profile.FlyRight);
                 }
 
-                ProfileTextBox.ScrollToBottom();
-                OutputTextBox.ScrollToBottom();
-            }catch(Exception ex)
+                if(ProfileTextBox != null)
+                    ProfileTextBox.ScrollToBottom();
+                if(OutputTextBox != null)
+                    OutputTextBox.ScrollToBottom();
+            }
+            catch (Exception ex)
             {
                 OutputTextBox.Text = new StringBuilder(OutputTextBox.Text)
                 .Append("Exception : ")
@@ -379,12 +391,18 @@ namespace NuimoFoo
             {
                 case NuimoConnectionState.Disconnected: buttonTitle = "Connect"; break;
                 case NuimoConnectionState.Connecting: buttonTitle = "Connecting..."; break;
-                case NuimoConnectionState.Connected: buttonTitle = "Disconnect"; break;
+                case NuimoConnectionState.Connected:
+                    buttonTitle = "Disconnect";
+                    var matrixString = " *     * ***   *** *     *             ***     *   *    *   *    *   *     ***   ";
+                    _nuimoController?.DisplayLedMatrixAsync(new NuimoLedMatrix(matrixString));
+                    break;
                 case NuimoConnectionState.Disconnecting: buttonTitle = "Disconnecting..."; break;
                 default: buttonTitle = ""; break;
             }
 
             ShowToastNotification("Connection State changed", nuimoConnectionState.ToString());
+                
+
 
             ConnectButton.Content = buttonTitle;
             ConnectionStateTextBlock.Text = nuimoConnectionState.ToString();
@@ -410,6 +428,11 @@ namespace NuimoFoo
 
         private async void Select_ProfileAsync(object sender, RoutedEventArgs e)
         {
+            switchProfile(false);
+        }
+
+        private async void switchProfile(bool silent)
+        {
             var profileFolders = await localFolder.CreateFolderAsync("Profiles", CreationCollisionOption.OpenIfExists);
 
             if (ProfilesComboBox.SelectedValue != null && !String.IsNullOrEmpty(ProfilesComboBox.SelectedValue.ToString()))
@@ -427,7 +450,8 @@ namespace NuimoFoo
 
                     _profile = JsonConvert.DeserializeObject<Profile>(json);
 
-                    ShowToastNotification("changed profile", ProfilesComboBox.SelectedValue.ToString());
+
+                    if (!silent) ShowToastNotification("changed profile", ProfilesComboBox.SelectedValue.ToString());
 
                     ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
                        .Append("loaded profile:" + ProfilesComboBox.SelectedValue.ToString() + "\n")
@@ -467,6 +491,11 @@ namespace NuimoFoo
             var profileFolders = await localFolder.CreateFolderAsync("Profiles", CreationCollisionOption.OpenIfExists);
             await Launcher.LaunchFolderAsync(profileFolders);
         }
+
+        private void CheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
 
@@ -474,7 +503,8 @@ internal static class DependencyObjectExtension
 {
     public static void ScrollToBottom(this DependencyObject dependencyObject)
     {
-        if (dependencyObject != null) {
+        if (dependencyObject != null)
+        {
             var grid = (Grid)VisualTreeHelper.GetChild(dependencyObject, 0);
             for (var i = 0; i < VisualTreeHelper.GetChildrenCount(grid); i++)
             {
