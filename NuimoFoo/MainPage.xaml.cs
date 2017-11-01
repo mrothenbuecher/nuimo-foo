@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using NuimoSDK;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -43,8 +44,9 @@ namespace NuimoFoo
 
         public MainPage()
         {
-            settings = new Settings();
             InitializeComponent();
+            initSettings();
+            initProfiles();
 
             processRequester = new ProcessRequester();
 
@@ -54,9 +56,49 @@ namespace NuimoFoo
             ProfileTextBox.TextWrapping = TextWrapping.NoWrap;
             DisplayIntervalTextBox.Text = "5.0";
 
-            initProfiles();
             Windows.UI.Xaml.Application.Current.DebugSettings.EnableFrameRateCounter = false;
             ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.Auto;
+
+        }
+
+        private async void initSettings()
+        {
+            StorageFile settingsFile;
+            string json;
+            try
+            {
+                settingsFile = await localFolder.GetFileAsync("settings.json"); //Getting Text files
+            }
+            catch (Exception e)
+            {
+                ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
+                    .Append("settings exception: " + e.Message + "\n")
+                    .ToString();
+
+                // there is no settings file
+                // create one
+                settings = new Settings();
+                json = JsonConvert.SerializeObject(settings, Formatting.Indented);
+
+                ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
+                        .Append("created settings: " + json + "\n")
+                        .ToString();
+                var textFile = await localFolder.CreateFileAsync("settings.json");
+                await FileIO.WriteTextAsync(textFile, json);
+
+                settingsFile = await localFolder.GetFileAsync("settings.json");
+            }
+
+            json = await FileIO.ReadTextAsync(settingsFile);
+
+            ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
+                .Append("read settings:" + json + "\n")
+                .ToString();
+
+            settings = JsonConvert.DeserializeObject<Settings>(json);
+
+            valueThreshold.Text = "" + settings.rotateThreshold;
+            automaticSwitch.IsChecked = settings.automaticSwitchBetweenProfiles;
 
         }
 
@@ -269,7 +311,7 @@ namespace NuimoFoo
                     var uriBing = new Uri(appUri);
 
                     ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
-                   .Append("trigger App with uri" + appUri + "\n")
+                   .Append("trigger App with uri: " + appUri + "\n")
                    .ToString();
 
                     // Launch the URI
@@ -286,7 +328,7 @@ namespace NuimoFoo
                     {
                         // URI launch failed
                         ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
-                            .Append("nope" + "\n")
+                            .Append("error " + "\n")
                             .ToString();
                     }
                 }
@@ -426,9 +468,9 @@ namespace NuimoFoo
 
         }
 
-        private async void Select_ProfileAsync(object sender, RoutedEventArgs e)
+        private void Select_Profile(object sender, RoutedEventArgs e)
         {
-            switchProfile(false);
+             switchProfile(false);
         }
 
         private async void switchProfile(bool silent)
@@ -505,13 +547,20 @@ internal static class DependencyObjectExtension
     {
         if (dependencyObject != null)
         {
-            var grid = (Grid)VisualTreeHelper.GetChild(dependencyObject, 0);
-            for (var i = 0; i < VisualTreeHelper.GetChildrenCount(grid); i++)
+            try
             {
-                object obj = VisualTreeHelper.GetChild(grid, i);
-                if (!(obj is ScrollViewer)) continue;
-                ((ScrollViewer)obj).ChangeView(0.0f, ((ScrollViewer)obj).ExtentHeight, 1.0f, true);
-                break;
+                var grid = (Grid)VisualTreeHelper.GetChild(dependencyObject, 0);
+                for (var i = 0; i < VisualTreeHelper.GetChildrenCount(grid); i++)
+                {
+                    object obj = VisualTreeHelper.GetChild(grid, i);
+                    if (!(obj is ScrollViewer)) continue;
+                    ((ScrollViewer)obj).ChangeView(0.0f, ((ScrollViewer)obj).ExtentHeight, 1.0f, true);
+                    break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Failed to scroll: " + ex.Message);
             }
         }
     }

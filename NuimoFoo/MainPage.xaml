@@ -60,14 +60,15 @@
                     <LineBreak/>
                     <Run/>
                 </TextBlock>
-                <Button Content="Select Profile" HorizontalAlignment="Left" Margin="383,40,0,0" VerticalAlignment="Top" Height="35" Width="135" Click="Select_ProfileAsync"/>
+                <Button Content="Select Profile" HorizontalAlignment="Left" Margin="383,40,0,0" VerticalAlignment="Top" Height="35" Width="135" Click="Select_Profile"/>
                 <Button Content="Open Profile Dir" HorizontalAlignment="Left" Height="30" Margin="88,490,0,0" VerticalAlignment="Top" Width="430" Click="Open_Profile_DirAsync"/>
             </Grid>
         </PivotItem>
         <PivotItem Header="Settings" Margin="12,0,0,0">
             <Grid Margin="0,10,0,0">
-                <TextBox x:Name="valueThreshold" HorizontalAlignment="Left" Height="16" TextWrapping="Wrap" VerticalAlignment="Top" Width="178" Margin="113,55,0,0" AcceptsReturn="False" MaxLength="4"/>
-                <CheckBox Content="automatic switch between profiles" HorizontalAlignment="Left" Margin="32,18,0,0" VerticalAlignment="Top" Width="259" Height="30"/>
+                <TextBlock HorizontalAlignment="Left" Height="32" Text="Rotate value threshold" TextWrapping="Wrap" VerticalAlignment="Top" Width="159" Margin="32,55,0,0" RenderTransformOrigin="0.449,2.2"/>
+                <TextBox x:Name="valueThreshold" HorizontalAlignment="Left" Height="25" TextWrapping="Wrap" VerticalAlignment="Top" Width="90" Margin="201,55,0,0" AcceptsReturn="False" MaxLength="4"/>
+                <CheckBox x:Name="automaticSwitch" Content="automatic switch between profiles" HorizontalAlignment="Left" Margin="32,18,0,0" VerticalAlignment="Top" Width="259" Height="30"/>
             </Grid>
         </PivotItem>
     </Pivot>
