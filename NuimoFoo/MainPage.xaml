@@ -64,5 +64,10 @@
                 <Button Content="Open Profile Dir" HorizontalAlignment="Left" Height="30" Margin="88,490,0,0" VerticalAlignment="Top" Width="430" Click="Open_Profile_DirAsync"/>
             </Grid>
         </PivotItem>
+        <PivotItem Header="Settings" Margin="12,0,0,0">
+            <Grid Margin="0,10,0,0">
+            
+            </Grid>
+        </PivotItem>
     </Pivot>
 </Page>
