@@ -67,8 +67,8 @@
         <PivotItem Header="Settings" Margin="12,0,0,0">
             <Grid Margin="0,10,0,0">
                 <TextBlock HorizontalAlignment="Left" Height="32" Text="Rotate value threshold" TextWrapping="Wrap" VerticalAlignment="Top" Width="159" Margin="32,55,0,0" RenderTransformOrigin="0.449,2.2"/>
-                <TextBox x:Name="valueThreshold" HorizontalAlignment="Left" Height="25" TextWrapping="Wrap" VerticalAlignment="Top" Width="90" Margin="201,55,0,0" AcceptsReturn="False" MaxLength="4"/>
-                <CheckBox x:Name="automaticSwitch" Content="automatic switch between profiles" HorizontalAlignment="Left" Margin="32,18,0,0" VerticalAlignment="Top" Width="259" Height="30"/>
+                <TextBox x:Name="valueThreshold" HorizontalAlignment="Left" Height="25" TextWrapping="Wrap" VerticalAlignment="Top" Width="90" Margin="201,55,0,0" AcceptsReturn="False" MaxLength="4" TextChanged="ValueThreshold_TextChanged"/>
+                <CheckBox x:Name="automaticSwitch" Content="automatic switch between profiles" HorizontalAlignment="Left" Margin="32,18,0,0" VerticalAlignment="Top" Width="259" Height="30" Checked="AutomaticSwitch_Checked"/>
             </Grid>
         </PivotItem>
     </Pivot>

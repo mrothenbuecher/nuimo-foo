@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.Storage.Search;
 using Windows.System;
@@ -33,22 +34,22 @@ namespace NuimoFoo
         private readonly PairedNuimoManager _pairedNuimoManager = new PairedNuimoManager();
         private IEnumerable<INuimoController> _nuimoControllers = new List<INuimoController>();
         private INuimoController _nuimoController;
-        private Windows.Storage.StorageFolder localFolder = Windows.Storage.ApplicationData.Current.LocalFolder;
+        private Windows.Storage.StorageFolder _localFolder = Windows.Storage.ApplicationData.Current.LocalFolder;
 
-        private ToastNotifier ToastNotifier = ToastNotificationManager.CreateToastNotifier();
-        private ToastNotification lastToast = null;
+        private ToastNotifier _toastNotifier = ToastNotificationManager.CreateToastNotifier();
+        private ToastNotification _lastToast = null;
 
-        private ProcessRequester processRequester;
+        private ProcessRequester _processRequester;
         private Profile _profile;
-        private Settings settings;
+        private Settings _settings;
 
         public MainPage()
         {
             InitializeComponent();
-            initSettings();
-            initProfiles();
+            InitSettings();
+            InitProfiles();
 
-            processRequester = new ProcessRequester();
+            _processRequester = new ProcessRequester();
 
             ListPairedNuimos();
             AddLedCheckBoxes();
@@ -61,13 +62,13 @@ namespace NuimoFoo
 
         }
 
-        private async void initSettings()
+        private async void InitSettings()
         {
             StorageFile settingsFile;
             string json;
             try
             {
-                settingsFile = await localFolder.GetFileAsync("settings.json"); //Getting Text files
+                settingsFile = await _localFolder.GetFileAsync("settings.json"); //Getting Text files
             }
             catch (Exception e)
             {
@@ -77,16 +78,9 @@ namespace NuimoFoo
 
                 // there is no settings file
                 // create one
-                settings = new Settings();
-                json = JsonConvert.SerializeObject(settings, Formatting.Indented);
+                _settings = new Settings();
 
-                ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
-                        .Append("created settings: " + json + "\n")
-                        .ToString();
-                var textFile = await localFolder.CreateFileAsync("settings.json");
-                await FileIO.WriteTextAsync(textFile, json);
-
-                settingsFile = await localFolder.GetFileAsync("settings.json");
+                settingsFile = await UpdateSettingsFileAsync();
             }
 
             json = await FileIO.ReadTextAsync(settingsFile);
@@ -95,16 +89,16 @@ namespace NuimoFoo
                 .Append("read settings:" + json + "\n")
                 .ToString();
 
-            settings = JsonConvert.DeserializeObject<Settings>(json);
+            _settings = JsonConvert.DeserializeObject<Settings>(json);
 
-            valueThreshold.Text = "" + settings.rotateThreshold;
-            automaticSwitch.IsChecked = settings.automaticSwitchBetweenProfiles;
+            valueThreshold.Text = "" + _settings.rotateThreshold;
+            automaticSwitch.IsChecked = _settings.automaticSwitchBetweenProfiles;
 
         }
 
-        private async void initProfiles()
+        private async void InitProfiles()
         {
-            var profileFolders = await localFolder.CreateFolderAsync("Profiles", CreationCollisionOption.OpenIfExists);
+            var profileFolders = await _localFolder.CreateFolderAsync("Profiles", CreationCollisionOption.OpenIfExists);
 
             var Files = await profileFolders.GetFilesAsync(CommonFileQuery.OrderByName); //Getting Text files
             if (Files.Count == 0)
@@ -139,7 +133,7 @@ namespace NuimoFoo
             //TODO may be save
             if (ProfilesComboBox.Items?.Count > 0) ProfilesComboBox.SelectedIndex = 0;
 
-            switchProfile(true);
+            SwitchProfile(true);
 
         }
 
@@ -272,7 +266,7 @@ namespace NuimoFoo
                 ((WithoutWriteResponseCheckBox.IsChecked ?? false) ? (int)NuimoLedMatrixWriteOption.WithoutWriteResponse : 0);
         }
 
-        private async void triggerApp(String appUri)
+        private async void TriggerApp(String appUri)
         {
             //Process.Start("C:\\");
             // The URI to launch
@@ -297,12 +291,12 @@ namespace NuimoFoo
                         }
                     }
                     ProfilesComboBox.SelectedIndex = i;
-                    switchProfile(false);
+                    SwitchProfile(false);
                 }
                 else
                 {
 
-                    string proc = processRequester.GetProcesses();
+                    string proc = _processRequester.GetProcesses();
 
                     ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
                    .Append("received proc:" + proc + "\n")
@@ -354,54 +348,54 @@ namespace NuimoFoo
 
                 if (nuimoGestureEvent.Gesture == NuimoGesture.ButtonPress)
                 {
-                    triggerApp(_profile.ButtonPress);
+                    TriggerApp(_profile.ButtonPress);
                 }
                 if (nuimoGestureEvent.Gesture == NuimoGesture.ButtonRelease)
                 {
-                    triggerApp(_profile.ButtonRelease);
+                    TriggerApp(_profile.ButtonRelease);
                 }
                 if (nuimoGestureEvent.Gesture == NuimoGesture.SwipeUp)
                 {
-                    triggerApp(_profile.SwipeUp);
+                    TriggerApp(_profile.SwipeUp);
                 }
                 if (nuimoGestureEvent.Gesture == NuimoGesture.SwipeDown)
                 {
-                    triggerApp(_profile.SwipeDown);
+                    TriggerApp(_profile.SwipeDown);
                 }
                 if (nuimoGestureEvent.Gesture == NuimoGesture.SwipeLeft)
                 {
-                    triggerApp(_profile.SwipeLeft);
+                    TriggerApp(_profile.SwipeLeft);
                 }
                 if (nuimoGestureEvent.Gesture == NuimoGesture.SwipeRight)
                 {
-                    triggerApp(_profile.SwipeRight);
+                    TriggerApp(_profile.SwipeRight);
                 }
 
-                if (nuimoGestureEvent.Gesture == NuimoGesture.Rotate && nuimoGestureEvent.Value > settings.rotateThreshold)
+                if (nuimoGestureEvent.Gesture == NuimoGesture.Rotate && nuimoGestureEvent.Value > _settings.rotateThreshold)
                 {
-                    triggerApp(_profile.RotateRight);
+                    TriggerApp(_profile.RotateRight);
                 }
-                if (nuimoGestureEvent.Gesture == NuimoGesture.Rotate && nuimoGestureEvent.Value < (-1* settings.rotateThreshold))
+                if (nuimoGestureEvent.Gesture == NuimoGesture.Rotate && nuimoGestureEvent.Value < (-1* _settings.rotateThreshold))
                 {
-                    triggerApp(_profile.RotateLeft);
+                    TriggerApp(_profile.RotateLeft);
                 }
 
                 if (nuimoGestureEvent.Gesture == NuimoGesture.FlyUpDown && nuimoGestureEvent.Value >= 135)
                 {
-                    triggerApp(_profile.FlyUp);
+                    TriggerApp(_profile.FlyUp);
                 }
                 if (nuimoGestureEvent.Gesture == NuimoGesture.FlyUpDown && nuimoGestureEvent.Value <= 115 && nuimoGestureEvent.Value > 1)
                 {
-                    triggerApp(_profile.FlyDown);
+                    TriggerApp(_profile.FlyDown);
                 }
 
                 if (nuimoGestureEvent.Gesture == NuimoGesture.FlyLeft)
                 {
-                    triggerApp(_profile.FlyLeft);
+                    TriggerApp(_profile.FlyLeft);
                 }
                 if (nuimoGestureEvent.Gesture == NuimoGesture.FlyRight)
                 {
-                    triggerApp(_profile.FlyRight);
+                    TriggerApp(_profile.FlyRight);
                 }
 
                 if(ProfileTextBox != null)
@@ -470,12 +464,12 @@ namespace NuimoFoo
 
         private void Select_Profile(object sender, RoutedEventArgs e)
         {
-             switchProfile(false);
+             SwitchProfile(false);
         }
 
-        private async void switchProfile(bool silent)
+        private async void SwitchProfile(bool silent)
         {
-            var profileFolders = await localFolder.CreateFolderAsync("Profiles", CreationCollisionOption.OpenIfExists);
+            var profileFolders = await _localFolder.CreateFolderAsync("Profiles", CreationCollisionOption.OpenIfExists);
 
             if (ProfilesComboBox.SelectedValue != null && !String.IsNullOrEmpty(ProfilesComboBox.SelectedValue.ToString()))
             {
@@ -510,9 +504,9 @@ namespace NuimoFoo
 
         private void ShowToastNotification(string title, string stringContent)
         {
-            if (lastToast != null)
+            if (_lastToast != null)
             {
-                ToastNotifier.Hide(lastToast);
+                _toastNotifier.Hide(_lastToast);
             }
             Windows.Data.Xml.Dom.XmlDocument toastXml = ToastNotificationManager.GetTemplateContent(ToastTemplateType.ToastText02);
             Windows.Data.Xml.Dom.XmlNodeList toastNodeList = toastXml.GetElementsByTagName("text");
@@ -524,19 +518,47 @@ namespace NuimoFoo
 
             ToastNotification toast = new ToastNotification(toastXml);
             toast.ExpirationTime = DateTime.Now.AddSeconds(5);
-            ToastNotifier.Show(toast);
-            lastToast = toast;
+            _toastNotifier.Show(toast);
+            _lastToast = toast;
         }
 
         private async void Open_Profile_DirAsync(object sender, RoutedEventArgs e)
         {
-            var profileFolders = await localFolder.CreateFolderAsync("Profiles", CreationCollisionOption.OpenIfExists);
+            var profileFolders = await _localFolder.CreateFolderAsync("Profiles", CreationCollisionOption.OpenIfExists);
             await Launcher.LaunchFolderAsync(profileFolders);
         }
 
-        private void CheckBox_Checked(object sender, RoutedEventArgs e)
+        private void AutomaticSwitch_Checked(object sender, RoutedEventArgs e)
         {
+            UpdateSettings();
+        }
 
+        private void ValueThreshold_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            UpdateSettings();
+        }
+
+        private async void UpdateSettings()
+        {
+            _settings.automaticSwitchBetweenProfiles =  automaticSwitch.IsChecked.Value;
+            var value = valueThreshold.Text.Replace(',', '.');
+            int val = value.Length > 0 ? int.Parse(value, new CultureInfo("us")) : 2;
+            _settings.rotateThreshold = val;
+
+            await UpdateSettingsFileAsync();
+        }
+
+        private async Task<StorageFile> UpdateSettingsFileAsync()
+        {
+            string json = JsonConvert.SerializeObject(_settings, Formatting.Indented);
+
+            ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
+                    .Append("updated settings: " + json + "\n")
+                    .ToString();
+            var textFile = await _localFolder.CreateFileAsync("settings.json");
+            var result = FileIO.WriteTextAsync(textFile, json);
+
+            return await _localFolder.GetFileAsync("settings.json");
         }
     }
 }
