@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Windows.Storage;
 using Windows.Storage.Search;
@@ -27,6 +28,7 @@ namespace NuimoFoo
     /// </summary>
     public sealed partial class MainPage
     {
+
         private readonly PairedNuimoManager _pairedNuimoManager = new PairedNuimoManager();
         private IEnumerable<INuimoController> _nuimoControllers = new List<INuimoController>();
         private INuimoController _nuimoController;
@@ -34,11 +36,15 @@ namespace NuimoFoo
 
         private ToastNotifier ToastNotifier = ToastNotificationManager.CreateToastNotifier();
         private ToastNotification lastToast = null;
+
+        private ProcessRequester processRequester;
         private Profile _profile;
 
         public MainPage()
         {
             InitializeComponent();
+
+            processRequester = new ProcessRequester();
 
             ListPairedNuimos();
             AddLedCheckBoxes();
@@ -244,6 +250,13 @@ namespace NuimoFoo
                 }
                 else
                 {
+
+                    string proc = processRequester.GetProcesses();
+
+                    ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
+                   .Append("received proc:" + proc + "\n")
+                   .ToString();
+
                     var uriBing = new Uri(appUri);
 
                     ProfileTextBox.Text = new StringBuilder(ProfileTextBox.Text)
