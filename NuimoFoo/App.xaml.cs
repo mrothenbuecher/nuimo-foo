@@ -1,6 +1,7 @@
 ﻿using System;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
+using Windows.ApplicationModel.ExtendedExecution;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
@@ -35,7 +36,11 @@ namespace NuimoFoo
                 DebugSettings.EnableFrameRateCounter = true;
             }
 #endif
+
+
             var rootFrame = Window.Current.Content as Frame;
+
+            ExtendExecutionAsync();
 
             // Do not repeat app initialization when the Window already has content,
             // just ensure that the window is active
@@ -66,6 +71,19 @@ namespace NuimoFoo
                 }
                 // Ensure the current window is active
                 Window.Current.Activate();
+            }
+        }
+
+        async void ExtendExecutionAsync()
+        {
+            var extendedExecutionSession = new ExtendedExecutionSession();
+            extendedExecutionSession.Reason = ExtendedExecutionReason.Unspecified;
+            var extendedExecutionResult = await extendedExecutionSession.RequestExtensionAsync();
+            if (extendedExecutionResult != ExtendedExecutionResult.Allowed)
+            {
+                //extended execution session revoked
+                extendedExecutionSession.Dispose();
+                extendedExecutionSession = null;
             }
         }
 
